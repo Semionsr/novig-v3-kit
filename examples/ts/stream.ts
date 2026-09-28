@@ -15,7 +15,15 @@ const stream = new NovigStream({
 });
 
 stream.on((e) => {
-  if (e.type === "orders") console.log("your orders:", e.events.map((o) => o.kind));
-  if (e.type === "gap") console.log("missed a message, fixing it:", e.subject);
+  if (e.type === "subscribed") console.log("connected, watching your orders...");
+  if (e.type === "orders") {
+    for (const o of e.events) {
+      if (o.kind === "open") console.log(`order open: ${o.qty} at ${o.price}  (${o.orderId})`);
+      if (o.kind === "fill") console.log(`order filled: ${o.qty} at ${o.price}, ${o.remaining} left  (${o.orderId})`);
+      if (o.kind === "cancel") console.log(`order canceled  (${o.orderId})`);
+      if (o.kind === "reject") console.log(`order rejected  (${o.orderId})`);
+    }
+  }
+  if (e.type === "gap") console.log(`missed a message on ${e.subject}, fixing it`);
 });
 stream.connect().subscribe({ private: ["orders"] });

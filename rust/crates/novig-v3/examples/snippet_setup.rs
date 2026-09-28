@@ -1,5 +1,5 @@
 use novig_v3::types::{OpenSubaccount, TransferDirection, TransferRequest};
-use novig_v3::{Algorithm, Client, Credentials, Environment, PrivateKey};
+use novig_v3::{Algorithm, Client, Credentials, Environment, Error, PrivateKey};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -8,14 +8,21 @@ async fn main() -> anyhow::Result<()> {
 
     // A trading key belongs to a subaccount. Make one, fund it, save the key.
     let trading_key = PrivateKey::generate(Algorithm::Ed25519);
-    let sub = manager
+    let opened = manager
         .open_subaccount(&OpenSubaccount {
             label: "my-bot".into(),
             public_key: trading_key.public_key().to_spki_pem(),
             algorithm: Algorithm::Ed25519,
             expires_at: None,
         })
-        .await?;
+        .await;
+    let sub = match opened {
+        Err(Error::Api { code, .. }) if code == "ACCOUNT_RULE_REFUSED" => {
+            eprintln!("Novig allows 5 subaccounts per account and this one is full. Reuse a trading.pem you saved earlier.");
+            std::process::exit(1);
+        }
+        other => other?,
+    };
     let fund = TransferRequest {
         direction: TransferDirection::Fund,
         amount: "10".parse()?,

@@ -346,3 +346,5 @@ a:hover { text-decoration-color: var(--gray-300); }
 .codeblock { border: 1px solid var(--line); border-radius: var(--radius-card); overflow: hidden; }
 .codeblock-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 8px 6px 16px; background: var(--white-5); border-bottom: 1px solid var(--line); }
 .codeblock .code { border: 0; border-radius: 0; }
+.codeblock.output { border-style: dashed; }
+.codeblock.output .code { color: var(--gray-400); }

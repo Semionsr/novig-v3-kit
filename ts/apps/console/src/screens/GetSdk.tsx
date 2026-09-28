@@ -14,6 +14,15 @@ import { IconCheck } from "../components/icons.tsx";
 import { Card } from "../components/ui.tsx";
 
 const REPO = "https://github.com/Semionsr/novig-v3-kit";
+const KEYS = `cp ~/Downloads/<the .pem file you downloaded> management.pem
+export NOVIG_KEY_ID=<API KEY ID from the app>`;
+
+// What a run prints, copied from real runs against QA (ids shortened).
+const OUT = {
+  setup: "export NOVIG_TRADING_KEY_ID=bdb2f54a-001f-4913-a3c4-5e853d2dfd60",
+  order: "market: Noah Dobson 1.5 SHOTS_ON_GOAL\nplaced: 01a0e9c6-9950-7ca2-ba19-8efe43e0be6d\ncanceled",
+  stream: "connected, watching your orders...\norder open: 100 at 0.010  (01a0e9c6-9950-7ca2-ba19-8efe43e0be6d)\norder canceled  (01a0e9c6-9950-7ca2-ba19-8efe43e0be6d)",
+};
 type Lang = "rust" | "ts";
 
 const LANGS: Record<Lang, {
@@ -21,6 +30,7 @@ const LANGS: Record<Lang, {
   keys: string;
   files: { setup: [string, string]; order: [string, string]; stream: [string, string] };
   run: { setup: string; order: string; stream: string };
+  firstRun?: string;
 }> = {
   rust: {
     install: `cargo new my-novig-bot && cd my-novig-bot
@@ -28,17 +38,16 @@ cargo add novig-v3 --git ${REPO}
 cargo add tokio --features full
 cargo add anyhow
 mkdir -p src/bin`,
-    keys: `cp ~/Downloads/novig-api-key-*.pem management.pem
-export NOVIG_KEY_ID=<API KEY ID from the app>`,
+    keys: KEYS,
     files: { setup: ["src/bin/setup.rs", rsSetup], order: ["src/bin/order.rs", rsOrder], stream: ["src/bin/stream.rs", rsStream] },
     run: { setup: "cargo run --bin setup", order: "cargo run --bin order", stream: "cargo run --bin stream" },
+    firstRun: "The first cargo run compiles everything, so it takes a minute or two. Later runs start in about a second.",
   },
   ts: {
     install: `mkdir my-novig-bot && cd my-novig-bot
 npm init -y && npm pkg set type=module
-pnpm add "github:Semionsr/novig-v3-kit#path:ts/packages/novig-v3" ws tsx`,
-    keys: `cp ~/Downloads/novig-api-key-*.pem management.pem
-export NOVIG_KEY_ID=<API KEY ID from the app>`,
+npm install github:Semionsr/novig-v3-kit ws tsx`,
+    keys: KEYS,
     files: { setup: ["setup.ts", tsSetup], order: ["order.ts", tsOrder], stream: ["stream.ts", tsStream] },
     run: { setup: "npx tsx setup.ts", order: "npx tsx order.ts", stream: "npx tsx stream.ts" },
   },
@@ -95,26 +104,32 @@ export function GetSdk() {
 
       <Step n={2} title="Make a project and install the SDK">
         <Code label="Terminal" text={L.install} />
+        <p className="caption fg2" style={{ margin: 0 }}>{lang === "rust" ? <>Needs <a href="https://rustup.rs" target="_blank" rel="noreferrer">Rust</a> installed.</> : <>Needs <a href="https://nodejs.org" target="_blank" rel="noreferrer">Node.js</a> 20 or newer.</>}</p>
       </Step>
 
       <Step n={3} title="Add your key">
         <Code label="Terminal" text={L.keys} />
+        <p className="caption fg2" style={{ margin: 0 }}>Replace the two parts in <span className="kbd">&lt; &gt;</span> with your file name and the key ID the app showed you. Keep this terminal open: the next steps read these.</p>
       </Step>
 
       <Step n={4} title="Make a trading key (once)" note="Your key from the app manages the account. Trading uses a separate key for a subaccount. This makes one, puts $10 of test money in it, and saves it as trading.pem. Novig allows 5 subaccounts per account, so run it once and keep the file.">
         <Code label={L.files.setup[0]} text={L.files.setup[1]} />
         <Code label="Terminal" text={L.run.setup} />
-        <p className="caption fg2" style={{ margin: 0 }}>It prints one <span className="kbd">export NOVIG_TRADING_KEY_ID=…</span> line. Paste that line into your terminal.</p>
+        {L.firstRun && <p className="caption fg2" style={{ margin: 0 }}>{L.firstRun}</p>}
+        <Output text={OUT.setup} />
+        <p className="caption fg2" style={{ margin: 0 }}>Copy that <span className="kbd">export</span> line and paste it into your terminal. Your ID will be different.</p>
       </Step>
 
       <Step n={5} title="Place an order" note="Finds an open market, rests an order far from the price so it won't fill, then cancels it.">
         <Code label={L.files.order[0]} text={L.files.order[1]} />
         <Code label="Terminal" text={L.run.order} />
+        <Output text={OUT.order} />
       </Step>
 
-      <Step n={6} title="Watch your orders live" note="Run this in a second terminal, then run step 5 again. You'll see your order open, then cancel.">
+      <Step n={6} title="Watch your orders live" note="This keeps a live connection open to Novig and prints a line the moment anything happens to one of your orders. Run it in a second terminal window (in the same folder, with the same two export lines), leave it running, then run step 5 again in the first window.">
         <Code label={L.files.stream[0]} text={L.files.stream[1]} />
         <Code label="Terminal" text={L.run.stream} />
+        <Output text={OUT.stream} note="The first line appears right away. The other two appear when step 5 runs in the other window. Press Ctrl+C to stop." />
       </Step>
 
       <Card title="What's inside the SDK" eyebrow="the hard parts, so you don't write them">
@@ -155,6 +170,16 @@ function Step({ n, title, note, children }: { n: number; title: string; note?: s
       {note && <p className="footnote fg2" style={{ margin: "0 0 14px 40px" }}>{note}</p>}
       <div className="stack" style={{ gap: 12 }}>{children}</div>
     </section>
+  );
+}
+
+function Output({ text, note }: { text: string; note?: string }) {
+  return (
+    <div className="codeblock output">
+      <div className="codeblock-head"><span className="mono caption fg2">You should see</span></div>
+      <pre className="code">{text}</pre>
+      {note && <div className="caption fg2" style={{ padding: "0 16px 12px" }}>{note}</div>}
+    </div>
   );
 }
 

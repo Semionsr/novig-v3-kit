@@ -1,0 +1,16 @@
+{
+  "name": "@semion/novig-v3",
+  "version": "0.1.0",
+  "description": "Unofficial TypeScript client for the Novig v3 API. This root manifest lets `npm install github:Semionsr/novig-v3-kit` install the SDK in ts/packages/novig-v3.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./ts/packages/novig-v3/src/index.ts",
+  "types": "./ts/packages/novig-v3/src/index.ts",
+  "exports": { ".": "./ts/packages/novig-v3/src/index.ts" },
+  "files": ["ts/packages/novig-v3/src/*.ts", "!ts/packages/novig-v3/src/*.test.ts"],
+  "sideEffects": false,
+  "dependencies": {
+    "@noble/curves": "^1.9.0",
+    "@noble/hashes": "^1.8.0"
+  }
+}
