@@ -21,8 +21,9 @@ export NOVIG_KEY_ID=<API KEY ID from the app>`;
 const OUT = {
   setup: "export NOVIG_TRADING_KEY_ID=bdb2f54a-001f-4913-a3c4-5e853d2dfd60",
   order: "market: Noah Dobson 1.5 SHOTS_ON_GOAL\nplaced: 01a0e9c6-9950-7ca2-ba19-8efe43e0be6d\ncanceled",
-  stream: "connected, watching your orders...\norder open: 100 at 0.010  (01a0e9c6-9950-7ca2-ba19-8efe43e0be6d)\norder canceled  (01a0e9c6-9950-7ca2-ba19-8efe43e0be6d)",
 };
+const streamOut = (price: string) =>
+  `connected, watching your orders...\norder open: 100 at ${price}  (01a0e9c6-9950-7ca2-ba19-8efe43e0be6d)\norder canceled  (01a0e9c6-9950-7ca2-ba19-8efe43e0be6d)`;
 type Lang = "rust" | "ts";
 
 const LANGS: Record<Lang, {
@@ -129,7 +130,7 @@ export function GetSdk() {
       <Step n={6} title="Watch your orders live" note="This keeps a live connection open to Novig and prints a line the moment anything happens to one of your orders. Run it in a second terminal window (in the same folder, with the same two export lines), leave it running, then run step 5 again in the first window.">
         <Code label={L.files.stream[0]} text={L.files.stream[1]} />
         <Code label="Terminal" text={L.run.stream} />
-        <Output text={OUT.stream} note="The first line appears right away. The other two appear when step 5 runs in the other window. Press Ctrl+C to stop." />
+        <Output text={streamOut(lang === "rust" ? "0.010" : "0.01")} note="The first line appears right away. The other two appear when step 5 runs in the other window. Press Ctrl+C to stop." />
       </Step>
 
       <Card title="What's inside the SDK" eyebrow="the hard parts, so you don't write them">

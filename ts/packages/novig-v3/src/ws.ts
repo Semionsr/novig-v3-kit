@@ -190,6 +190,9 @@ export class NovigStream {
       this.stats.connected = true;
       this.stats.nonce = 0;
       this.emit({ type: "connected", url: this.opts.url, connection });
+      // A new connection has no subscriptions, and `desired` already folds in every queued
+      // (un)subscribe, so send it once instead of replaying those verbs too.
+      this.outbox = this.outbox.filter((m) => m.verb !== "subscribe" && m.verb !== "unsubscribe");
       if (selectionWeight(this.desired) > 0) {
         for (const [id, ch] of Object.entries(this.desired.markets)) this.seqs.set(`market:${id}:${ch}`, new Sequencer());
         this.outbox.unshift({ verb: "subscribe", payload: this.compactDesired(), weight: selectionWeight(this.desired) });

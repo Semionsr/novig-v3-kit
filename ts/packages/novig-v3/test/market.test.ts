@@ -106,3 +106,13 @@ describe("stream gap recovery", () => {
     expect(s.stats.gaps).toBe(1);
   });
 });
+
+describe("stream subscribe before open", () => {
+  it("sends one subscribe, not the queued verb plus the replay of the desired selection", () => {
+    const sock = new FakeSocket();
+    const s = new NovigStream({ url: "wss://example.test/v3/ws", socketFactory: () => sock, throttler: new Throttler() });
+    s.connect().subscribe({ private: ["orders"] });
+    sock.onopen?.({});
+    expect(sock.sent).toEqual([{ nonce: 1, subscribe: { private: ["orders"] } }]);
+  });
+});
