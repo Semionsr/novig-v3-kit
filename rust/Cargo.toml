@@ -1,0 +1,22 @@
+[workspace]
+resolver = "3"
+members = ["crates/novig-v3", "crates/novig-mm", "bins/console-server"]
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+license = "MIT"
+repository = "https://github.com/semionreznik/novig-v3-kit"
+
+[workspace.dependencies]
+novig-v3 = { path = "crates/novig-v3" }
+anyhow = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+rust_decimal = { version = "1", features = ["serde-str"] }
+futures-util = "0.3"

@@ -1,0 +1,26 @@
+{
+  "name": "@semion/novig-v3",
+  "version": "0.1.0",
+  "description": "Unofficial TypeScript client for the Novig v3 API. NOVIG-V3 signing, typed REST, throttle pacing, gap-safe websocket book. Zero Node APIs, so it runs in Expo / React Native, browsers and Node.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "sideEffects": false,
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "gen:types": "openapi-typescript ../../../fixtures/openapi-v3-target.json -o src/openapi.d.ts"
+  },
+  "dependencies": {
+    "@noble/curves": "^1.9.0",
+    "@noble/hashes": "^1.8.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.6.0",
+    "typescript": "~5.9.0",
+    "vitest": "^3.2.0",
+    "@types/node": "^22.0.0"
+  }
+}

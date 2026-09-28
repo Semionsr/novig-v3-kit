@@ -1,0 +1,24 @@
+[package]
+name = "console-server"
+description = "Local backend for the Novig v3 console: holds the key, signs, relays the websocket and bot state to the browser."
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+novig-v3.workspace = true
+novig-mm = { path = "../../crates/novig-mm" }
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+rust_decimal.workspace = true
+futures-util.workspace = true
+actix-web = "4"
+actix-cors = "0.7"
+async-stream = "0.3"
+bytes = "1"
+dotenvy = "0.15"

@@ -1,0 +1,12 @@
+# Novig's fonts are licensed (Dinamo, OH no Type). Fetched locally for demos, never committed.
+fonts/*
+!fonts/.gitkeep
+.env
+target/
+node_modules/
+dist/
+*.pem
+.DS_Store
+screenshots/tmp/
+.novig/
+keys/

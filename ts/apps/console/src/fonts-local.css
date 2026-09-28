@@ -1,0 +1,5 @@
+/* Novig's own typefaces, served from <kit>/fonts (licensed, local only; see scripts/fetch-fonts.sh). */
+@font-face { font-family: "Monument"; src: url("/ABCMonumentGrotesk-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Monument"; src: url("/ABCMonumentGrotesk-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Monument"; src: url("/ABCMonumentGrotesk-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "PaperMono"; src: url("/PaperMono.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
