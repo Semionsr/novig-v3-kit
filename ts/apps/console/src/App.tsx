@@ -5,7 +5,7 @@ import { ScreenBoundary } from "./components/ScreenBoundary.tsx";
 import { Connection, useStatus } from "./screens/Connection.tsx";
 import { GetSdk } from "./screens/GetSdk.tsx";
 import { Markets } from "./screens/Markets.tsx";
-import { Overview } from "./screens/Overview.tsx";
+import { Findings } from "./screens/Findings.tsx";
 import { Quickstart } from "./screens/Quickstart.tsx";
 import { SignatureLab } from "./screens/SignatureLab.tsx";
 import { Throttle } from "./screens/Throttle.tsx";
@@ -15,30 +15,37 @@ import { publicClient } from "./lib/novig.ts";
 import { startEvents, usePoll, useStore } from "./lib/store.ts";
 import { IS_DEMO } from "./lib/api.ts";
 
-type Screen = "sdk" | "overview" | "quickstart" | "markets" | "lab" | "connection" | "throttle" | "trading";
+type Screen = "sdk" | "lab" | "connection" | "throttle" | "trading" | "findings" | "markets" | "quickstart";
 
+// Ordered like the email: what I built, proof it works, what I noticed. Quickstart needs a key,
+// so it only appears when the console runs locally.
 const GROUPS: Array<{ title: string; items: Array<{ id: Screen; label: string; icon: typeof IconRocket }> }> = [
-  { title: "Start", items: [{ id: "sdk", label: "Use the SDK", icon: IconCode }, { id: "overview", label: "Overview", icon: IconRocket }, { id: "quickstart", label: "Quickstart", icon: IconKey }] },
-  { title: "Market data", items: [{ id: "markets", label: "Markets", icon: IconMarkets }] },
-  { title: "Authentication", items: [{ id: "lab", label: "Signature Lab", icon: IconKey }] },
-  { title: "Streaming", items: [{ id: "connection", label: "Connection", icon: IconPulse }] },
-  { title: "Troubleshooting", items: [{ id: "throttle", label: "Throttle", icon: IconGauge }] },
-  { title: "Trading", items: [{ id: "trading", label: "Reference maker", icon: IconBot }] },
+  { title: "What I built", items: [{ id: "sdk", label: "The SDK", icon: IconCode }] },
+  { title: "Proof it works", items: [
+    { id: "lab", label: "30/30 signing tests", icon: IconKey },
+    { id: "connection", label: "Survives dropped data", icon: IconPulse },
+    { id: "throttle", label: "Never hits rate limits", icon: IconGauge },
+    { id: "trading", label: "Market maker", icon: IconBot },
+  ] },
+  { title: "What I noticed", items: [{ id: "findings", label: "4 findings", icon: IconSearch }] },
+  { title: "Bonus", items: [{ id: "markets", label: "Live markets", icon: IconMarkets }] },
+  ...(IS_DEMO ? [] : [{ title: "Local only", items: [{ id: "quickstart" as Screen, label: "Quickstart (your key)", icon: IconRocket }] }]),
 ];
 
 const PAGES: Record<Screen, { group: string; title: string; lead: string }> = {
-  sdk: { group: "Start", title: "Use the SDK", lead: "Copy these into your terminal to go from a Novig key to placing and watching orders, in Rust or TypeScript." },
-  overview: { group: "Start", title: "Overview", lead: "A client toolkit for the v3 API in Rust and TypeScript, and this console built on it." },
-  quickstart: { group: "Start", title: "Quickstart", lead: "Go from a management key to a resting order in five calls, on QA." },
-  markets: { group: "Market data", title: "Markets", lead: "Live production books and trades from /v3/public, read in this browser with the TypeScript SDK." },
-  lab: { group: "Authentication", title: "Signature Lab", lead: "Build a NOVIG-V3 request, check it against your 30 vectors, and name the mistake in a rejected one." },
-  connection: { group: "Streaming", title: "Connection", lead: IS_DEMO ? "One websocket for every channel: gaps detected, snapshots requested per subject, deltas replayed. Here, the TypeScript SDK against an in-page mock exchange." : "One websocket for every channel: gaps detected, snapshots requested per subject, deltas replayed." },
-  throttle: { group: "Troubleshooting", title: "Throttle", lead: "The per-key buckets, modelled client-side so requests queue instead of drawing a 429." },
-  trading: { group: "Trading", title: "Reference maker", lead: "Two-sided post-only quotes around mid, paper or live, with maker credits booked per the fee formula." },
+  sdk: { group: "What I built", title: "The SDK", lead: "Copy these into your terminal to go from a Novig key to placing and watching orders, in Rust or TypeScript." },
+  lab: { group: "Proof it works", title: "30/30 signing tests", lead: "Every request to v3 must be signed exactly right. The SDK passes all 30 of Novig's official signing tests, checked live in this browser, and can name the mistake in a rejected signature." },
+  connection: { group: "Proof it works", title: "Survives dropped data", lead: IS_DEMO ? "Watch the SDK recover when messages get lost. A practice exchange in this page drops messages on purpose; the SDK notices each gap and repairs its order book." : "Watch the SDK recover when messages get lost: against a practice exchange that drops messages on purpose, or against Novig QA." },
+  throttle: { group: "Proof it works", title: "Never hits rate limits", lead: "Novig limits how fast each key can send requests. The SDK paces itself to those limits, so requests wait their turn instead of getting blocked with a 429." },
+  trading: { group: "Proof it works", title: "Market maker", lead: "A reference bot built on the SDK: it quotes both sides around the fair price and books maker credits the way Novig's fee docs describe." },
+  findings: { group: "What I noticed", title: "4 findings", lead: "Things I found in v3 while building the SDK, each with a way to reproduce it." },
+  markets: { group: "Bonus", title: "Live markets", lead: "Novig's real production books and trades, read in this browser with the TypeScript SDK. No key needed." },
+  quickstart: { group: "Local only", title: "Quickstart", lead: "Novig's five-call quickstart as buttons, against QA with your own key." },
 };
 
 function initialScreen(): Screen {
   const h = location.hash.replace("#", "") as Screen;
+  if (h === "quickstart" && IS_DEMO) return "sdk";
   return h in PAGES ? h : "sdk";
 }
 
@@ -72,7 +79,7 @@ export function App() {
               <IconSearch />
               <input placeholder="Search events, teams & players" value={search} onChange={(e) => { setSearch(e.target.value); if (screen !== "markets") go("markets"); }} />
             </label>
-            <button className="pill-btn" onClick={() => go("quickstart")}>
+            <button className="pill-btn" onClick={() => go(IS_DEMO ? "sdk" : "quickstart")}>
               <span className={`badge ${IS_DEMO ? "pos" : serverUp ? (st?.trading ? "pos" : "") : "neg"}`} style={{ height: 18, padding: "0 6px" }}><span className="pip" /></span>
               {IS_DEMO ? "Demo · in-browser mock" : !serverUp ? "Server offline" : st?.trading ? `QA · ${st.trading.keyId}` : st?.management ? "QA · management key" : "No key · public + mock"}
             </button>
@@ -80,8 +87,9 @@ export function App() {
           <button className="btn primary" onClick={() => go("connection")}>Open stream</button>
         </div>
         <nav className="tabs">
-          <button className={screen === "sdk" ? "on" : ""} onClick={() => go("sdk")}>SDK</button>
-          <button className={screen !== "sdk" ? "on" : ""} onClick={() => go(screen === "sdk" ? "overview" : screen)}>Console</button>
+          <button className={PAGES[screen].group === "What I built" ? "on" : ""} onClick={() => go("sdk")}>What I built</button>
+          <button className={PAGES[screen].group === "Proof it works" ? "on" : ""} onClick={() => go("lab")}>Proof it works</button>
+          <button className={PAGES[screen].group === "What I noticed" ? "on" : ""} onClick={() => go("findings")}>What I noticed</button>
           <a href="https://docs.novig.com/api/quickstart" target="_blank" rel="noreferrer">Guides</a>
           <a href="https://docs.novig.com/api-reference/changelog" target="_blank" rel="noreferrer">API Reference</a>
           <a href="https://docs.novig.com/api/signing#test-vectors" target="_blank" rel="noreferrer">Test vectors</a>
@@ -121,8 +129,8 @@ export function App() {
             <p>{page.lead}</p>
           </div>
           <ScreenBoundary key={screen}>
-            {screen === "sdk" && <GetSdk go={go} />}
-            {screen === "overview" && <Overview go={go} />}
+            {screen === "sdk" && <GetSdk />}
+            {screen === "findings" && <Findings />}
             {screen === "markets" && (<div className="stack"><Ticker onPick={() => {}} /><Markets search={search} /></div>)}
             {screen === "lab" && <SignatureLab />}
             {screen === "connection" && <Connection status={st} refresh={status.reload} />}

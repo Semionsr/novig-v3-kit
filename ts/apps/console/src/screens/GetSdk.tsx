@@ -55,7 +55,7 @@ function initialLang(): Lang {
   try { return localStorage.getItem("sdk-lang") === "ts" ? "ts" : "rust"; } catch { return "rust"; }
 }
 
-export function GetSdk({ go }: { go: (s: string) => void }) {
+export function GetSdk() {
   const [lang, setLang] = useState<Lang>(initialLang);
   const pick = (l: Lang) => { setLang(l); try { localStorage.setItem("sdk-lang", l); } catch { /* private mode */ } };
   const L = LANGS[lang];
@@ -83,11 +83,14 @@ export function GetSdk({ go }: { go: (s: string) => void }) {
         <span className="caption fg2">Every file below ran against Novig QA on Sep 28, 2026.</span>
       </div>
 
-      <Step n={1} title="Get a test key">
-        <p className="footnote fg2" style={{ margin: 0 }}>
-          Sign in to the <a href="https://novig-mobile-app--qa.expo.app" target="_blank" rel="noreferrer">QA app</a> (test money), then Profile → Settings → Novig API → Create Key.
-          It downloads a <span className="kbd">.pem</span> file and shows an API key ID. <a onClick={() => go("quickstart")} style={{ cursor: "pointer" }}>Test identity values →</a>
-        </p>
+      <Step n={1} title="Get a test key" note="Novig's QA exchange uses test money. Its identity check and deposit only accept Novig's published test values, never your real ones.">
+        <ol className="footnote fg2" style={{ margin: 0, paddingLeft: 22, lineHeight: "26px" }}>
+          <li>Open the <a href="https://novig-mobile-app--qa.expo.app" target="_blank" rel="noreferrer">QA app</a> and sign up with Google.</li>
+          <li>Identity check: date of birth <span className="kbd">April 1, 1975</span>, phone <span className="kbd">+14257789900</span>, code <span className="kbd">123456</span>.</li>
+          <li>Allow location when the browser asks, and wait for the location check to finish.</li>
+          <li>Deposit with card <span className="kbd">4242 4242 4242 4242</span>, CVV <span className="kbd">123</span>, expiry <span className="kbd">12/30</span> (up to $95 per payment).</li>
+          <li>Profile → Settings → Novig API → Create Key. It downloads a <span className="kbd">.pem</span> file and shows an API key ID.</li>
+        </ol>
       </Step>
 
       <Step n={2} title="Make a project and install the SDK">
@@ -131,6 +134,12 @@ export function GetSdk({ go }: { go: (s: string) => void }) {
             </tbody>
           </table>
         </div>
+        <ul className="footnote fg2" style={{ margin: "16px 0 0", paddingLeft: 18, lineHeight: "22px" }}>
+          <li>Signs the exact path, query and body bytes it sends, and always sends Content-Type on bodies</li>
+          <li>Splits order batches under the edge's 8 KiB cap (~90 orders), which otherwise fails as an HTML 403</li>
+          <li>Money as strings and exact decimals, prices snapped to the 279-price grid</li>
+          <li>A 201 means "queued": order state comes from the private stream's open / fill / cancel / reject</li>
+        </ul>
       </Card>
     </div>
   );

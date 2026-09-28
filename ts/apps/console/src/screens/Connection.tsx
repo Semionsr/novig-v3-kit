@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { OrderBook } from "../components/OrderBook.tsx";
 import { Card, ErrorLine, Notice, Stat } from "../components/ui.tsx";
-import { api, type ServerStatus, type WsEventWire } from "../lib/api.ts";
+import { IS_DEMO, api, type ServerStatus, type WsEventWire } from "../lib/api.ts";
 import { sidesFromView } from "../lib/book.ts";
 import { ago, clock, int } from "../lib/format.ts";
 import { resetStreamState, usePoll, useStore } from "../lib/store.ts";
@@ -46,7 +46,7 @@ export function Connection({ status, refresh }: { status?: ServerStatus; refresh
         <div className="row">
           <div className="seg">
             <button className={target === "mock" ? "on" : ""} onClick={() => setTarget("mock")}>Local mock exchange</button>
-            <button className={target === "qa" ? "on" : ""} onClick={() => setTarget("qa")} disabled={!status?.trading} title={status?.trading ? "" : "Needs a trading key (Quickstart)"}>Novig QA</button>
+            {!IS_DEMO && <button className={target === "qa" ? "on" : ""} onClick={() => setTarget("qa")} disabled={!status?.trading} title={status?.trading ? "" : "Needs a trading key (Quickstart)"}>Novig QA</button>}
           </div>
           {target === "qa" && <input className="input mono" style={{ width: 320 }} placeholder="market id to watch" value={market} onChange={(e) => setMarket(e.target.value)} />}
           <button className="btn primary" onClick={connect}>{ws?.connected ? "Reconnect" : "Connect"}</button>
@@ -55,7 +55,7 @@ export function Connection({ status, refresh }: { status?: ServerStatus; refresh
       }>
         {!connectedTo && (
           <Notice>
-            The mock speaks the documented v3 protocol (signed upgrade, nonces, per-market <span className="kbd">seq</span>, snapshots, <span className="kbd">GOLIVE</span>) and drops frames on purpose, so you can watch the client recover. <b>Novig QA</b> unlocks once a trading key exists.
+            Click <b>Connect</b>, then under <b>Break it on purpose</b> pick a frame loss like <b>1 in 8</b>. The practice exchange starts dropping messages, and the <b>Gaps</b> and <b>Resyncs</b> counts go up while the order book stays correct. It speaks the same v3 protocol as Novig's real feed.{IS_DEMO ? "" : <> <b>Novig QA</b> unlocks once a trading key exists.</>}
           </Notice>
         )}
         {connectedTo && (
